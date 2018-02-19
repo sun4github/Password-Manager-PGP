@@ -9,6 +9,7 @@ import getpass
 import pgpy
 import warnings
 import pyperclip
+import configparser
 
 warnings.filterwarnings("ignore")
 
@@ -21,14 +22,18 @@ from sys import platform
 #https://stackoverflow.com/questions/12524994/encrypt-decrypt-using-pycrypto-aes-256
 import hashlib,re
 
+main_config = configparser.ConfigParser(allow_no_value = True)
+
+main_config.read('config.ini')
+
+
+
 #Custom Private Information -- DO NOT SHARE -- START
 # master password is used to decrypt individual password entry lines, along with secret_key from below
 master_pwd = None
-aws_access_key=''
-# This is encrypted " AWS secret access key". Encrypted using "simple_encrypt_by_passphrase.py". Encrypted using the "AWS password" provided.
-# "AWS password" does not vary per password file. Memorize it, to be able to connect to AWS. Will be in PGP text format
-aws_secret_key='''
-'''
+aws_access_key = main_config['SETTINGS']['AWS_ACCESS_KEY']
+aws_secret_key = main_config['SETTINGS']['AWS_ACCESS_PW']
+BUCKET = main_config['SETTINGS']['BUCKET']
 
 # convert a string to bytes: ref: https://stackoverflow.com/questions/7585435/best-way-to-convert-string-to-bytes-in-python-3
 # to convert a byte string to string: ref: # ref: https://stackoverflow.com/questions/606191/convert-bytes-to-a-string
@@ -37,15 +42,15 @@ aws_access_key_as_bytes = str.encode(aws_access_key)
 secret_key = aws_access_key_as_bytes[:16] 
 
 #AWS Bucket where to store the password file - make sure it is created 
-BUCKET = ''
+#BUCKET = 'aplan'
 
 #secret_key = os.urandom(32) 
 
 #exported public key file (from cleopatra by GNUPGP program) with .asc extension
-PUBLIC_KEY_ASC_FILE=''
+PUBLIC_KEY_ASC_FILE=main_config['SETTINGS']['PUBLIC_KEY_ASC_FILE']
 
 #exported pass phrase protected private key file (from cleopatra by GNUPGP program) with .asc extension
-PRIVATE_KEY_ASC_FILE=''
+PRIVATE_KEY_ASC_FILE=main_config['SETTINGS']['PRIVATE_KEY_ASC_FILE']
 
 #load the public & private key files
 # A key can be loaded from a file, like so:
@@ -486,12 +491,14 @@ def clearScreen():
     elif(isWindowsOS() == 'yes'):
         os.system('cls')
 
+# not used as of 2018-02-19
 def decryptAWSSecretKey(aws_secret_key,aws_pwd):
 	#create PGP message from the encrypted AWS secret access key (encrypted using the AWS Password)
     pgp_msg = pgpy.PGPMessage.from_blob(aws_secret_key)
 	#decrypt the AWS secret access key (using the provided AWS Password)
     plainText = pgp_msg.decrypt(aws_pwd)
-    #print(plainText.message)
+    print(plainText.message)
+    pyperclip.copy(plainText.message)
     return plainText.message
 
 def printFBHeader(processing_file, pwdListLen):
@@ -499,19 +506,13 @@ def printFBHeader(processing_file, pwdListLen):
     print(' ************ use strong passwords from passwordgenerator.net or password store app  ************ ')
     print(' ************ use secret_answer_right_shifter.py for secret question answers and note shift in notes  ************ ')
 
-print('Specify the AWS Password (Used to decrypt AWS secret key)')
-try:
-    aws_pwd = getpass.getpass(prompt='AWS Password:')
-except Exception:
-    #print('Password maybe displayed back')
-    aws_pwd = input()
- 
+
 
 # Creat a AWS client connection to S3 using AWS access key & (decrypted) AWS secret access key
 s3Client = boto3.client(
 's3',
 aws_access_key_id=aws_access_key,
-aws_secret_access_key=decryptAWSSecretKey(aws_secret_key,aws_pwd)
+aws_secret_access_key=aws_secret_key
 )
 
 print('Specify the Pass Phrase for Private Key (same for all files)')
