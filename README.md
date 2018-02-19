@@ -10,7 +10,7 @@ Brief Summary:
 - All fields in password entry are comma seperated
 - All contents (lines of password entries) of the password file will be encrypted using PGP public key
 - All contents (lines of password entries) of the password file will be decrypted using PGP private key
-- Password file is stored in S3 bucket, as a AES-256 bit encrypted object
+- Password file is stored in a AWS S3 bucket, and encrypted AES-256 bit encryption using SSE-S3
 
 Dependencies:
 - Python (3+)
