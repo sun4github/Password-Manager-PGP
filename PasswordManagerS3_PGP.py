@@ -256,18 +256,24 @@ def writeToFileAndS3():
     exit()
 
 def getNewPwdEntry():
-    print()
-    print('Enter source name:')
-    sourceName = input()
-    print('Enter user name:')
-    userName = input()
-    print('Enter password:')
-    password = input()
-    print('Enter notes:')
-    notes = input()
-    newPWDEntry = PWDEntry(sourceName,userName,password,notes)
-    pwdList.append(newPWDEntry)
-
+    try:
+        print('Press Ctrl+{0} to exit to main menu'.format('C'))
+        print('Enter source name:')
+        sourceName = input()
+        print('Enter user name:')
+        userName = input()
+        print('Enter password:')
+        password = input()
+        print('Enter notes:')
+        notes = input()
+        newPWDEntry = PWDEntry(sourceName,userName,password,notes)
+        pwdList.append(newPWDEntry)
+    except KeyboardInterrupt:
+        return
+    except Exception as ex:
+        print('Something went wrong with entering a new entry')
+        return
+    
 def findPwdEntryByUserName(userName):
     foundPwdList = []
     count = 0
