@@ -547,13 +547,8 @@ if(s3PwdFile != None and len(s3PwdFile) != 0):
         dec_text = pgp_handler.decrypt_file(localPwdFile)
 ##      print("dec_text")
 ##      print(dec_text)
-        if(dec_text == "Not a valid PGP message. Likely Unencrypted password file"):
-            # likely the file is plain old text file. let us try to split lines from it, the old way
-            with open(localPwdFile ) as infile_object :
-             lines = infile_object.read().splitlines() # strips the newline at end of line
-             infile_object.close()
-        else:
-            lines = dec_text.split('\n') # strips the newline at end of line
+        lines = dec_text.split('\n') # strips the newline at end of line
+	os.remove(localPwdFile)
     except Exception:
         #continue if file not found
         localPwdFile = s3PwdFile
